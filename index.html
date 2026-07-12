@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPM Dashboard — EL-DABAA 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #f4f6f4;
+    --surface:  #ffffff;
+    --surface2: #f0f2f0;
+    --border:   #dde3dd;
+    --border2:  #c8d0c8;
+
+    --allow:       #1a6b3a;
+    --allow-bg:    #eaf5ef;
+    --allow-mid:   #c3e6d0;
+    --deny:        #b91c1c;
+    --deny-bg:     #fef2f2;
+    --deny-mid:    #fecaca;
+    --warn:        #92400e;
+    --warn-bg:     #fffbeb;
+    --warn-mid:    #fde68a;
+    --spray-ok:    #1e40af;
+    --spray-ok-bg: #eff6ff;
+    --spray-no:    #6d28d9;
+    --spray-no-bg: #f5f3ff;
+
+    --text:       #1a231a;
+    --text-mid:   #4a5e4a;
+    --text-muted: #7a927a;
+
+    --s1: #2563eb;
+    --s2: #0891b2;
+    --s3: #059669;
+    --s4: #d97706;
+    --s5: #7c3aed;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: stretch;
+    height: 52px;
+    position: sticky; top:0; z-index:200;
+  }
+  .hd-logo {
+    display: flex; align-items: center; gap:10px;
+    padding-right: 20px;
+    border-right: 1px solid var(--border);
+    margin-right: 20px;
+  }
+  .hd-logo-box {
+    width:28px; height:28px;
+    background: var(--allow);
+    border-radius: 4px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .hd-logo-box svg { width:16px; height:16px; fill:white; }
+  .hd-company { font-size:.65rem; font-weight:700; color:var(--allow); letter-spacing:.08em; text-transform:uppercase; }
+  .hd-title   { font-size:.82rem; font-weight:700; color:var(--text); letter-spacing:.02em; }
+  .hd-sub     { font-size:.62rem; color:var(--text-muted); font-weight:400; }
+  .hd-nav   { display:flex; align-items:center; gap:2px; flex:1; }
+  .hd-tab {
+    padding: 0 14px; height:100%;
+    display:flex; align-items:center;
+    font-size:.75rem; font-weight:500;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom:-2px;
+    cursor:pointer; transition:all .15s;
+    background:none; border-top:none; border-left:none; border-right:none;
+    font-family:'Inter',sans-serif;
+  }
+  .hd-tab:hover { color:var(--text); }
+  .hd-tab.active { color:var(--allow); border-bottom-color:var(--allow); }
+  .hd-right {
+    display:flex; align-items:center; gap:10px; margin-left:auto;
+  }
+  .date-chip {
+    font-family:'JetBrains Mono',monospace;
+    font-size:.68rem; color:var(--text-muted);
+    background:var(--surface2);
+    padding:4px 10px; border-radius:4px;
+    border:1px solid var(--border);
+  }
+
+  /* ── TAB VIEWS ── */
+  .tab-view { display:none; height:100%; }
+  .tab-view.active { display:flex; flex-direction:column; }
+
+  /* ── SPRAY LOG TABLE ── */
+  .log-view { padding:20px; overflow-y:auto; flex:1; }
+  .log-toolbar { display:flex; gap:8px; margin-bottom:14px; align-items:center; flex-wrap:wrap; }
+  .log-search {
+    flex:1; min-width:160px; padding:6px 10px;
+    border:1px solid var(--border2); border-radius:5px;
+    font-family:'Inter',sans-serif; font-size:.75rem;
+    background:var(--surface); color:var(--text);
+    outline:none;
+  }
+  .log-search:focus { border-color:var(--allow); }
+  .log-select {
+    padding:6px 10px; border:1px solid var(--border2); border-radius:5px;
+    font-family:'Inter',sans-serif; font-size:.72rem;
+    background:var(--surface); color:var(--text-mid); cursor:pointer;
+  }
+  .log-table { width:100%; border-collapse:collapse; font-size:.72rem; }
+  .log-table thead tr { background:var(--surface2); }
+  .log-table th {
+    padding:8px 10px; text-align:left;
+    font-size:.62rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.07em;
+    color:var(--text-muted);
+    border-bottom:2px solid var(--border);
+    position:sticky; top:0; background:var(--surface2);
+  }
+  .log-table td {
+    padding:8px 10px;
+    border-bottom:1px solid var(--border);
+    vertical-align:middle;
+  }
+  .log-table tr:hover td { background:var(--surface2); }
+  .log-table tr.row-deny td { background:var(--deny-bg); }
+  .log-table tr.row-allow td { background:var(--allow-bg); }
+  .tpill {
+    font-size:.6rem; font-weight:600; padding:2px 7px; border-radius:99px;
+    display:inline-block;
+  }
+  .tpill-allow { background:var(--allow-bg); color:var(--allow); border:1px solid var(--allow-mid); }
+  .tpill-deny  { background:var(--deny-bg);  color:var(--deny);  border:1px solid var(--deny-mid); }
+  .tpill-warn  { background:var(--warn-bg);  color:var(--warn);  border:1px solid var(--warn-mid); }
+  .tpest-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-left:4px; vertical-align:middle; }
+  .log-count { font-size:.7rem; color:var(--text-muted); margin-left:auto; }
+
+  /* ── PHI CALENDAR ── */
+  .cal-view { padding:20px; overflow-y:auto; flex:1; }
+  .cal-toolbar { display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+  .cal-month-nav { display:flex; align-items:center; gap:8px; }
+  .cal-nav-btn {
+    width:28px; height:28px; border-radius:4px;
+    border:1px solid var(--border2); background:var(--surface);
+    cursor:pointer; font-size:.9rem; color:var(--text-mid);
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .cal-nav-btn:hover { border-color:var(--allow); color:var(--allow); }
+  .cal-month-lbl {
+    font-family:'JetBrains Mono',monospace;
+    font-size:.8rem; font-weight:600; color:var(--text);
+    min-width:110px; text-align:center;
+  }
+  .cal-legend { display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; }
+  .cal-leg-item { display:flex; align-items:center; gap:5px; font-size:.65rem; color:var(--text-muted); }
+  .cal-leg-dot { width:10px; height:10px; border-radius:2px; }
+
+  .cal-grid-wrap { overflow-x:auto; }
+  .cal-grid {
+    min-width:700px;
+    display:grid;
+    gap:0;
+  }
+  .cal-header-row {
+    display:contents;
+  }
+  .cal-day-hdr {
+    padding:6px 4px; text-align:center;
+    font-size:.6rem; font-weight:700;
+    color:var(--text-muted); text-transform:uppercase;
+    background:var(--surface2);
+    border-bottom:1px solid var(--border);
+    border-right:1px solid var(--border);
+    position:sticky; top:0; z-index:5;
+  }
+  .cal-day-hdr.today-col {
+    color:var(--allow); background:var(--allow-bg);
+  }
+  .cal-gh-row {
+    display:contents;
+  }
+  .cal-gh-lbl {
+    padding:4px 8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:.62rem; font-weight:600; color:var(--text-mid);
+    background:var(--surface2);
+    border-bottom:1px solid var(--border);
+    border-right:2px solid var(--border2);
+    display:flex; align-items:center; gap:5px;
+    position:sticky; left:0; z-index:4;
+  }
+  .cal-gh-lbl .sec-dot {
+    width:6px; height:6px; border-radius:50%; flex-shrink:0;
+  }
+  .cal-cell {
+    border-bottom:1px solid var(--border);
+    border-right:1px solid var(--border);
+    min-height:26px;
+    position:relative;
+  }
+  .cal-cell.today-col { background:rgba(26,107,58,.04); }
+  .cal-cell.c-deny    { background:var(--deny-bg); }
+  .cal-cell.c-warn    { background:var(--warn-bg); }
+  .cal-cell.c-allow   { background:var(--allow-bg); }
+  .cal-cell.c-spray   { background:#eff6ff; }
+  .cal-cell-dot {
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:8px; height:8px; border-radius:50%;
+  }
+
+  /* ── LAYOUT ── */
+  .body-wrap {
+    display:grid;
+    grid-template-columns: 1fr 292px;
+    height: calc(100vh - 52px);
+  }
+
+  /* ── LEFT: MAP ── */
+  .map-col {
+    overflow-y:auto;
+    padding:20px;
+    display:flex; flex-direction:column; gap:0;
+  }
+
+  /* filter bar */
+  .filter-bar {
+    display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;
+  }
+  .fb {
+    font-size:.72rem; font-weight:500;
+    padding:5px 12px; border-radius:20px;
+    border:1px solid var(--border2);
+    background:var(--surface);
+    color:var(--text-mid);
+    cursor:pointer; transition:all .15s;
+    font-family:'Inter',sans-serif;
+  }
+  .fb:hover { border-color:var(--allow); color:var(--allow); }
+  .fb.active { background:var(--allow); color:white; border-color:var(--allow); }
+  .fb.active.deny  { background:var(--deny);    border-color:var(--deny); }
+  .fb.active.spray-no { background:var(--spray-no); border-color:var(--spray-no); }
+  .fb.active.spray-ok { background:var(--spray-ok); border-color:var(--spray-ok); }
+
+  /* sector block */
+  .sector-block {
+    margin-bottom:18px;
+    animation: fadeUp .3s ease forwards;
+    opacity:0;
+  }
+  .sector-block:nth-child(1){animation-delay:.03s}
+  .sector-block:nth-child(2){animation-delay:.07s}
+  .sector-block:nth-child(3){animation-delay:.11s}
+  .sector-block:nth-child(4){animation-delay:.15s}
+  .sector-block:nth-child(5){animation-delay:.19s}
+  @keyframes fadeUp { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+
+  .sector-header {
+    display:flex; align-items:center; gap:8px; margin-bottom:8px;
+  }
+  .sector-tag {
+    font-size:.65rem; font-weight:700;
+    padding:2px 8px; border-radius:3px;
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:.05em;
+  }
+  .s1-tag { background:#dbeafe; color:var(--s1); }
+  .s2-tag { background:#cffafe; color:var(--s2); }
+  .s3-tag { background:#d1fae5; color:var(--s3); }
+  .s4-tag { background:#fef3c7; color:var(--s4); }
+  .s5-tag { background:#ede9fe; color:var(--s5); }
+
+  .sector-line { flex:1; height:1px; background:var(--border); }
+  .sector-count { font-size:.65rem; color:var(--text-muted); }
+
+  .gh-row { display:flex; gap:5px; flex-wrap:wrap; }
+
+  /* GH CARD */
+  .gh-card {
+    width:82px; height:68px;
+    border-radius:5px;
+    border:1.5px solid var(--border);
+    background:var(--surface);
+    cursor:pointer;
+    position:relative;
+    transition:box-shadow .15s, transform .12s, border-color .15s;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  .gh-card:hover {
+    transform:translateY(-2px);
+    box-shadow:0 4px 14px rgba(0,0,0,.1);
+  }
+  .gh-card.selected {
+    box-shadow: 0 0 0 2px var(--allow), 0 4px 14px rgba(0,0,0,.1);
+  }
+
+  /* status variants */
+  .gh-card.s-allow  { border-color:var(--allow-mid);   background:var(--allow-bg); }
+  .gh-card.s-deny   { border-color:var(--deny-mid);    background:var(--deny-bg); }
+  .gh-card.s-warn   { border-color:var(--warn-mid);    background:var(--warn-bg); }
+  .gh-card.s-clean  { border-color:var(--border);      background:var(--surface); }
+
+  /* top stripe */
+  .gh-stripe { height:3px; width:100%; }
+  .s-allow .gh-stripe { background:var(--allow); }
+  .s-deny  .gh-stripe { background:var(--deny); }
+  .s-warn  .gh-stripe { background:var(--warn); }
+  .s-clean .gh-stripe { background:var(--border2); }
+
+  .gh-id {
+    font-family:'JetBrains Mono',monospace;
+    font-size:.6rem; font-weight:600;
+    color:var(--text-mid);
+    padding:3px 5px 0;
+  }
+
+  /* pesticide tags inside card */
+  .gh-pests {
+    display:flex; gap:2px; padding:2px 5px; flex-wrap:wrap;
+  }
+  .pest-dot {
+    width:6px; height:6px; border-radius:50%;
+    flex-shrink:0;
+  }
+
+  /* valve bars */
+  .gh-valves {
+    display:flex; gap:2px; padding:1px 5px; margin-top:1px;
+  }
+  .vbar {
+    flex:1; height:3px; border-radius:2px;
+    background:var(--border);
+  }
+  .vbar.sprayed { background:#93c5fd; }
+  .vbar.recent  { background:var(--deny); opacity:.7; }
+
+  /* bottom status row */
+  .gh-foot {
+    margin-top:auto;
+    display:flex; justify-content:space-between;
+    padding:2px 5px 3px;
+  }
+  .gh-foot-ico { font-size:.72rem; line-height:1; }
+  .spray-block-tag {
+    font-size:.48rem; font-weight:700;
+    background:var(--spray-no-bg);
+    color:var(--spray-no);
+    border:1px solid #ddd6fe;
+    padding:1px 3px; border-radius:2px;
+    align-self:center;
+  }
+  .phi-tag {
+    font-family:'JetBrains Mono',monospace;
+    font-size:.5rem; color:var(--deny);
+    align-self:center;
+  }
+
+  /* ── RIGHT: SIDEBAR ── */
+  .sidebar {
+    background:var(--surface);
+    border-left:1px solid var(--border);
+    display:flex; flex-direction:column;
+    overflow:hidden;
+  }
+
+  /* KPI strip */
+  .kpi-strip {
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:1px; background:var(--border);
+    border-bottom:1px solid var(--border);
+  }
+  .kpi {
+    background:var(--surface);
+    padding:12px 14px;
+  }
+  .kpi-label {
+    font-size:.62rem; font-weight:600;
+    text-transform:uppercase; letter-spacing:.07em;
+    color:var(--text-muted); margin-bottom:3px;
+  }
+  .kpi-val {
+    font-family:'JetBrains Mono',monospace;
+    font-size:1.5rem; font-weight:700; line-height:1;
+  }
+  .kpi-val.green  { color:var(--allow); }
+  .kpi-val.red    { color:var(--deny); }
+  .kpi-val.blue   { color:var(--spray-ok); }
+  .kpi-val.purple { color:var(--spray-no); }
+  .kpi-sub { font-size:.6rem; color:var(--text-muted); margin-top:2px; }
+
+  /* detail panel */
+  .detail {
+    flex:1; overflow-y:auto; padding:14px;
+  }
+  .detail-empty {
+    height:100%;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:8px; color:var(--text-muted);
+    font-size:.75rem; text-align:center;
+  }
+  .empty-arrow { font-size:1.5rem; opacity:.3; }
+
+  /* detail content */
+  .det-header {
+    display:flex; align-items:center;
+    justify-content:space-between; margin-bottom:12px;
+  }
+  .det-gh-id {
+    font-family:'JetBrains Mono',monospace;
+    font-size:1rem; font-weight:700; color:var(--text);
+  }
+  .det-pill {
+    font-size:.62rem; font-weight:600;
+    padding:3px 10px; border-radius:99px;
+  }
+  .pill-allow  { background:var(--allow-bg);   color:var(--allow);    border:1px solid var(--allow-mid); }
+  .pill-deny   { background:var(--deny-bg);    color:var(--deny);     border:1px solid var(--deny-mid); }
+  .pill-warn   { background:var(--warn-bg);    color:var(--warn);     border:1px solid var(--warn-mid); }
+  .pill-clean  { background:var(--surface2);   color:var(--text-mid); border:1px solid var(--border); }
+
+  .det-section {
+    font-size:.62rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.08em;
+    color:var(--text-muted);
+    margin:12px 0 6px;
+  }
+
+  /* spray block alert */
+  .spray-alert {
+    background:var(--spray-no-bg);
+    border:1px solid #ddd6fe;
+    border-radius:5px;
+    padding:8px 10px;
+    font-size:.7rem; color:var(--spray-no);
+    display:flex; align-items:flex-start; gap:8px;
+    margin-bottom:10px;
+  }
+
+  /* valve vis */
+  .valve-pair { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+  .valve-card {
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:5px; padding:8px;
+  }
+  .valve-name {
+    font-family:'JetBrains Mono',monospace;
+    font-size:.6rem; color:var(--text-muted); margin-bottom:5px;
+  }
+  .lines-grid {
+    display:grid; grid-template-columns:repeat(10,1fr); gap:1.5px;
+  }
+  .ln {
+    width:100%; aspect-ratio:1; border-radius:1px;
+    background:var(--border);
+  }
+  .ln.sprayed { background:#93c5fd; }
+  .ln.recent  { background:var(--deny); }
+
+  /* spray log entries */
+  .log-list { display:flex; flex-direction:column; gap:5px; }
+  .log-item {
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:5px; padding:9px 10px 8px;
+    border-left:3px solid var(--border2);
+    position:relative;
+  }
+  .log-item.lc-trolls    { border-left-color:#7c3aed; }
+  .log-item.lc-mosiplan  { border-left-color:var(--s2); }
+  .log-item.lc-radiant   { border-left-color:var(--s3); }
+  .log-item.lc-delta     { border-left-color:var(--s4); }
+  .log-item.lc-recent    { border-left-color:var(--deny); }
+
+  .log-top {
+    display:flex; justify-content:space-between; margin-bottom:4px;
+  }
+  .log-name { font-size:.78rem; font-weight:600; color:var(--text); }
+  .log-date {
+    font-family:'JetBrains Mono',monospace;
+    font-size:.62rem; color:var(--text-muted);
+  }
+  .log-tags { display:flex; gap:5px; flex-wrap:wrap; }
+  .ltag {
+    font-size:.6rem; padding:2px 6px; border-radius:3px;
+    border:1px solid var(--border2);
+    background:var(--surface); color:var(--text-mid);
+  }
+  .ltag.deny  { background:var(--deny-bg);   color:var(--deny);   border-color:var(--deny-mid); }
+  .ltag.allow { background:var(--allow-bg);  color:var(--allow);  border-color:var(--allow-mid); }
+  .ltag.warn  { background:var(--warn-bg);   color:var(--warn);   border-color:var(--warn-mid); }
+  .ltag.spray { background:var(--spray-no-bg); color:var(--spray-no); border-color:#ddd6fe; }
+
+  /* phi bar */
+  .phi-row { display:flex; align-items:center; gap:7px; margin-top:6px; }
+  .phi-bar-wrap { flex:1; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .phi-bar-fill { height:100%; border-radius:2px; }
+  .phi-bar-fill.d { background:var(--deny); }
+  .phi-bar-fill.w { background:var(--warn); }
+  .phi-bar-fill.g { background:var(--allow); }
+  .phi-txt {
+    font-family:'JetBrains Mono',monospace;
+    font-size:.6rem; white-space:nowrap;
+  }
+
+  /* import */
+  .import-area {
+    border-top:1px solid var(--border);
+    padding:12px 14px; background:var(--bg);
+  }
+  .import-lbl {
+    font-size:.62rem; font-weight:600;
+    text-transform:uppercase; letter-spacing:.07em;
+    color:var(--text-muted); margin-bottom:7px;
+  }
+  .import-btn {
+    width:100%; padding:8px;
+    background:var(--surface);
+    border:1px dashed var(--border2);
+    border-radius:5px; color:var(--text-muted);
+    font-family:'Inter',sans-serif; font-size:.72rem;
+    cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+  }
+  .import-btn:hover {
+    border-color:var(--allow); color:var(--allow);
+    background:var(--allow-bg);
+  }
+  #fileIn { display:none; }
+  .import-note {
+    font-size:.6rem; color:var(--text-muted);
+    text-align:center; margin-top:5px; opacity:.7;
+  }
+
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hd-logo">
+    <div class="hd-logo-box">
+      <svg viewBox="0 0 20 20"><path d="M10 2C5.6 2 2 5.6 2 10s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm-1 11.4L5.6 9l1.4-1.4 2 2 4-4L14.4 7 9 13.4z"/></svg>
+    </div>
+    <div>
+      <div class="hd-company">Agriventures</div>
+      <div class="hd-title">IPM Dashboard — EL-DABAA 2026</div>
+    </div>
+  </div>
+  <nav class="hd-nav">
+    <button class="hd-tab active" onclick="switchTab('map',this)">🗺 Farm Map</button>
+    <button class="hd-tab" onclick="switchTab('log',this)">📋 Spray Log</button>
+    <button class="hd-tab" onclick="switchTab('cal',this)">📅 PHI Calendar</button>
+  </nav>
+  <div class="hd-right">
+    <span id="syncTime" style="font-size:.62rem;color:var(--text-muted)"></span>
+    <div class="date-chip" id="dateLbl">—</div>
+  </div>
+</header>
+
+<!-- STATUS BAR -->
+<div id="syncBar" style="display:none;align-items:center;justify-content:center;gap:8px;padding:5px 20px;font-size:.72rem;color:white;font-weight:500;position:sticky;top:52px;z-index:199">
+  <span id="syncMsg"></span>
+</div>
+
+<!-- ══ TAB: FARM MAP ══ -->
+<div class="tab-view active" id="view-map" style="height:calc(100vh - 52px)">
+<div class="body-wrap">
+  <div class="map-col">
+    <div class="filter-bar">
+      <button class="fb active" onclick="setF('all',this)">All Greenhouses</button>
+      <button class="fb deny"     onclick="setF('deny',this)">🚫 Harvest Not Allowed</button>
+      <button class="fb"          onclick="setF('allow',this)">✅ Harvest Allowed</button>
+      <button class="fb spray-no" onclick="setF('spray-block',this)">⛔ No Spray Today</button>
+      <button class="fb spray-ok" onclick="setF('spray-ok',this)">💧 Can Spray Today</button>
+    </div>
+    <div id="mapWrap"></div>
+  </div>
+  <div class="sidebar">
+    <div class="kpi-strip">
+      <div class="kpi">
+        <div class="kpi-label">Harvest Allowed</div>
+        <div class="kpi-val green" id="kAllow">—</div>
+        <div class="kpi-sub">greenhouses</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Not Allowed</div>
+        <div class="kpi-val red" id="kDeny">—</div>
+        <div class="kpi-sub">PHI active</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Can Spray</div>
+        <div class="kpi-val blue" id="kSprayOk">—</div>
+        <div class="kpi-sub">greenhouses</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">No Spray</div>
+        <div class="kpi-val purple" id="kSprayNo">—</div>
+        <div class="kpi-sub">&lt; 3 days since last</div>
+      </div>
+    </div>
+    <div class="detail" id="detailPane">
+      <div class="detail-empty">
+        <div class="empty-arrow">←</div>
+        <div>Click any greenhouse<br>to view spray details</div>
+      </div>
+    </div>
+    <div class="import-area">
+      <div class="import-lbl">📂 Dropbox Sync</div>
+      <button class="import-btn" id="loadBtn" onclick="document.getElementById('fileIn').click()" style="font-size:.78rem;font-weight:600;color:var(--allow);border-color:var(--allow-mid);background:var(--allow-bg)">
+        <span id="loadIco">📁</span>&nbsp; <span id="loadTxt">Load from Dropbox folder</span>
+      </button>
+      <input type="file" id="fileIn" accept=".xlsx,.xlsm,.xls" onchange="loadExcelFile(event)">
+      <div class="import-note" id="importNote">اختاري الملف من فولدر Dropbox على جهازك</div>
+    </div>
+  </div>
+</div>
+</div><!-- end view-map -->
+
+<!-- ══ TAB: SPRAY LOG ══ -->
+<div class="tab-view" id="view-log" style="height:calc(100vh - 52px)">
+  <div class="log-view">
+    <div class="log-toolbar">
+      <input class="log-search" id="logSearch" type="text" placeholder="Search greenhouse, pesticide, active ingredient…" oninput="renderLog()">
+      <select class="log-select" id="logSector" onchange="renderLog()">
+        <option value="">All Sectors</option>
+        <option value="1">Sector 1</option>
+        <option value="2">Sector 2</option>
+        <option value="3">Sector 3</option>
+        <option value="4">Sector 4</option>
+        <option value="5">Sector 5</option>
+      </select>
+      <select class="log-select" id="logStatus" onchange="renderLog()">
+        <option value="">All Statuses</option>
+        <option value="allow">Harvest Allowed</option>
+        <option value="deny">Harvest Not Allowed</option>
+      </select>
+      <span class="log-count" id="logCount"></span>
+    </div>
+    <table class="log-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>GH</th>
+          <th>Sector</th>
+          <th>Pesticide</th>
+          <th>Active Ingredient</th>
+          <th>Method</th>
+          <th>PHI (days)</th>
+          <th>Allowed Harvest</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="logTbody"></tbody>
+    </table>
+  </div>
+</div><!-- end view-log -->
+
+<!-- ══ TAB: PHI CALENDAR ══ -->
+<div class="tab-view" id="view-cal" style="height:calc(100vh - 52px)">
+  <div class="cal-view">
+    <div class="cal-toolbar">
+      <div class="cal-month-nav">
+        <button class="cal-nav-btn" onclick="calMove(-1)">‹</button>
+        <div class="cal-month-lbl" id="calMonthLbl">—</div>
+        <button class="cal-nav-btn" onclick="calMove(1)">›</button>
+      </div>
+      <div class="cal-legend">
+        <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--deny-bg);border:1px solid var(--deny-mid)"></div>PHI Active — No Harvest</div>
+        <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--warn-bg);border:1px solid var(--warn-mid)"></div>PHI Ending Soon</div>
+        <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--allow-bg);border:1px solid var(--allow-mid)"></div>Harvest Allowed</div>
+        <div class="cal-leg-item"><div class="cal-leg-dot" style="background:#eff6ff;border:1px solid #bfdbfe"></div>Spray Applied</div>
+      </div>
+    </div>
+    <div class="cal-grid-wrap">
+      <div id="calGrid"></div>
+    </div>
+  </div>
+</div><!-- end view-cal -->
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// REAL DATA from IPM_EL-dabaa_2026-4.xlsx
+// ═══════════════════════════════════════════════════════════
+const TODAY_STR = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+document.getElementById('dateLbl').textContent = TODAY_STR;
+
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+
+function daysBetween(dateStr) {
+  const d = new Date(dateStr); d.setHours(0,0,0,0);
+  return Math.floor((TODAY - d) / 86400000);
+}
+function harvestAllowed(harvestDateStr) {
+  if(!harvestDateStr) return true;
+  const d = new Date(harvestDateStr); d.setHours(0,0,0,0);
+  return TODAY >= d;
+}
+function daysToHarvest(harvestDateStr) {
+  if(!harvestDateStr) return 0;
+  const d = new Date(harvestDateStr); d.setHours(0,0,0,0);
+  return Math.ceil((d - TODAY) / 86400000);
+}
+function fmtDate(str) {
+  const d = new Date(str);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+// GH → Sector mapping from the file
+const GH_SECTOR = {
+  1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,10:1,
+  11:2,12:2,13:2,14:2,17:2,19:2,20:2,
+  21:3,22:3,23:3,24:3,25:3,26:3,27:3,28:3,29:3,30:3,
+  46:4,47:4,51:4,52:4,56:4,57:4,58:4,61:4,62:4,
+  32:5,33:5,34:5,37:5,38:5,39:5,42:5
+};
+
+const SECTOR_GHS = {
+  1:[1,2,3,4,5,6,7,8,9,10],
+  2:[11,12,13,14,17,19,20],
+  3:[21,22,23,24,25,26,27,28,29,30],
+  4:[46,47,51,52,56,57,58,61,62],
+  5:[32,33,34,37,38,39,42]
+};
+
+const PEST_COLOR = {
+  'Trolls 25% EW':  '#7c3aed',
+  'Mosiplan 20% SP':'#0891b2',
+  'Radiant 12% SC': '#059669',
+  'Delta Star 10% EC':'#d97706'
+};
+
+let RECORDS = [{"date":"2026-05-01","gh":1,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-16","status":"Allow"},{"date":"2026-05-03","gh":2,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-18","status":"Not Allow"},{"date":"2026-05-03","gh":11,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-18","status":"Not Allow"},{"date":"2026-05-04","gh":3,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-19","status":"Not Allow"},{"date":"2026-05-05","gh":4,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-20","status":"Not Allow"},{"date":"2026-05-05","gh":12,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-20","status":"Not Allow"},{"date":"2026-05-07","gh":5,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-22","status":"Not Allow"},{"date":"2026-05-07","gh":13,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-22","status":"Not Allow"},{"date":"2026-05-07","gh":32,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-22","status":"Not Allow"},{"date":"2026-05-08","gh":10,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-23","status":"Not Allow"},{"date":"2026-05-08","gh":23,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-23","status":"Not Allow"},{"date":"2026-05-08","gh":46,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-23","status":"Not Allow"},{"date":"2026-05-09","gh":37,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-24","status":"Not Allow"},{"date":"2026-05-09","gh":47,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-24","status":"Not Allow"},{"date":"2026-05-09","gh":42,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-24","status":"Not Allow"},{"date":"2026-05-09","gh":9,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-24","status":"Not Allow"},{"date":"2026-05-10","gh":14,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-25","status":"Not Allow"},{"date":"2026-05-10","gh":28,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-25","status":"Not Allow"},{"date":"2026-05-10","gh":23,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-25","status":"Not Allow"},{"date":"2026-05-11","gh":51,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-26","status":"Not Allow"},{"date":"2026-05-11","gh":20,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-26","status":"Not Allow"},{"date":"2026-05-11","gh":24,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-26","status":"Not Allow"},{"date":"2026-05-11","gh":52,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-26","status":"Not Allow"},{"date":"2026-05-11","gh":38,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-26","status":"Not Allow"},{"date":"2026-05-12","gh":24,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-27","status":"Not Allow"},{"date":"2026-05-12","gh":25,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-27","status":"Not Allow"},{"date":"2026-05-12","gh":19,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-27","status":"Not Allow"},{"date":"2026-05-13","gh":8,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-28","status":"Not Allow"},{"date":"2026-05-14","gh":7,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-29","status":"Not Allow"},{"date":"2026-05-14","gh":39,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-29","status":"Not Allow"},{"date":"2026-05-14","gh":34,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-29","status":"Not Allow"},{"date":"2026-05-14","gh":6,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-29","status":"Not Allow"},{"date":"2026-05-15","gh":33,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-06-30","status":"Not Allow"},{"date":"2026-05-16","gh":17,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-07-01","status":"Not Allow"},{"date":"2026-05-16","gh":56,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-07-01","status":"Not Allow"},{"date":"2026-05-18","gh":57,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-07-03","status":"Not Allow"},{"date":"2026-05-18","gh":58,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-07-03","status":"Not Allow"},{"date":"2026-05-19","gh":61,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-07-04","status":"Not Allow"},{"date":"2026-05-19","gh":27,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-07-04","status":"Not Allow"},{"date":"2026-05-20","gh":26,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-07-05","status":"Not Allow"},{"date":"2026-05-20","gh":22,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-07-05","status":"Not Allow"},{"date":"2026-05-20","gh":62,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-07-05","status":"Not Allow"},{"date":"2026-05-21","gh":21,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Trolls 25% EW","active":"Tebuconazole 25%","method":"Spray","phi":45,"harvest_date":"2026-07-06","status":"Not Allow"},{"date":"2026-05-22","gh":11,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-28","status":"Allow"},{"date":"2026-05-22","gh":12,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-28","status":"Allow"},{"date":"2026-05-22","gh":1,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Radiant 12% SC","active":"Spinetoram [12%]","method":"Spray","phi":5,"harvest_date":"2026-05-28","status":"Allow"},{"date":"2026-05-22","gh":2,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Radiant 12% SC","active":"Spinetoram [12%]","method":"Spray","phi":5,"harvest_date":"2026-05-28","status":"Allow"},{"date":"2026-05-22","gh":3,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Radiant 12% SC","active":"Spinetoram [12%]","method":"Spray","phi":5,"harvest_date":"2026-05-28","status":"Allow"},{"date":"2026-05-22","gh":11,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Radiant 12% SC","active":"Spinetoram [12%]","method":"Spray","phi":5,"harvest_date":"2026-05-28","status":"Allow"},{"date":"2026-05-23","gh":12,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-29","status":"Allow"},{"date":"2026-05-23","gh":1,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-29","status":"Allow"},{"date":"2026-05-23","gh":2,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-29","status":"Allow"},{"date":"2026-05-23","gh":3,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-29","status":"Allow"},{"date":"2026-05-23","gh":5,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-29","status":"Allow"},{"date":"2026-05-23","gh":4,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-29","status":"Allow"},{"date":"2026-05-24","gh":23,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-30","status":"Allow"},{"date":"2026-05-24","gh":28,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-30","status":"Allow"},{"date":"2026-05-25","gh":32,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-31","status":"Allow"},{"date":"2026-05-25","gh":37,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-31","status":"Allow"},{"date":"2026-05-25","gh":42,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-05-31","status":"Allow"},{"date":"2026-05-25","gh":4,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-05","status":"Allow"},{"date":"2026-05-25","gh":5,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-05","status":"Allow"},{"date":"2026-05-25","gh":10,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-05","status":"Allow"},{"date":"2026-05-25","gh":13,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-05","status":"Allow"},{"date":"2026-05-26","gh":46,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-06-01","status":"Allow"},{"date":"2026-05-26","gh":47,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-06-01","status":"Allow"},{"date":"2026-05-26","gh":51,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-06-01","status":"Allow"},{"date":"2026-05-27","gh":23,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-07","status":"Allow"},{"date":"2026-05-27","gh":32,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-07","status":"Allow"},{"date":"2026-05-28","gh":24,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-06-03","status":"Allow"},{"date":"2026-05-28","gh":12,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-08","status":"Allow"},{"date":"2026-05-28","gh":51,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-08","status":"Allow"},{"date":"2026-05-28","gh":52,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-08","status":"Allow"},{"date":"2026-05-28","gh":14,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-08","status":"Allow"},{"date":"2026-05-29","gh":8,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-06-04","status":"Allow"},{"date":"2026-05-29","gh":9,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-06-04","status":"Allow"},{"date":"2026-05-30","gh":38,"sector":5,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-10","status":"Allow"},{"date":"2026-05-30","gh":24,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-10","status":"Allow"},{"date":"2026-05-30","gh":9,"sector":1,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-10","status":"Allow"},{"date":"2026-05-30","gh":52,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-06-05","status":"Allow"},{"date":"2026-05-30","gh":25,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-06-05","status":"Allow"},{"date":"2026-05-30","gh":14,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-06-05","status":"Allow"},{"date":"2026-05-30","gh":20,"sector":2,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Mosiplan 20% SP","active":"Acetamiprid [20%]","method":"Injection","phi":5,"harvest_date":"2026-06-05","status":"Allow"},{"date":"2026-05-31","gh":30,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-11","status":"Allow"},{"date":"2026-05-31","gh":29,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-11","status":"Allow"},{"date":"2026-05-31","gh":26,"sector":3,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-11","status":"Allow"},{"date":"2026-05-31","gh":56,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-11","status":"Allow"},{"date":"2026-05-31","gh":57,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-11","status":"Allow"},{"date":"2026-05-31","gh":58,"sector":4,"valve":"A&B","first_line":1,"end_line":160,"pesticide":"Delta Star 10% EC","active":"Deltamethrin","method":"Spray","phi":10,"harvest_date":"2026-06-11","status":"Allow"}];
+
+// ═══════════════════════════════════════════════════════════
+// STATUS ENGINE
+// ═══════════════════════════════════════════════════════════
+function ghStatus(gh) {
+  const recs = RECORDS.filter(r => r.gh === gh);
+  if(!recs.length) return {code:'clean', harvestOk:true, sprayOk:true, daysToH:0, recs};
+
+  // Most restrictive harvest date
+  let latestHarvest = null;
+  let sprayBlock = false;
+
+  recs.forEach(r => {
+    const hd = new Date(r.harvest_date); hd.setHours(0,0,0,0);
+    if(!latestHarvest || hd > latestHarvest) latestHarvest = hd;
+    if(daysBetween(r.date) < 3) sprayBlock = true;
+  });
+
+  const harvestOk = !latestHarvest || TODAY >= latestHarvest;
+  const dth = latestHarvest ? Math.ceil((latestHarvest - TODAY) / 86400000) : 0;
+
+  let code = 'allow';
+  if(!harvestOk) {
+    code = dth <= 3 ? 'warn' : 'deny';
+  }
+
+  return {code, harvestOk, sprayOk:!sprayBlock, daysToH:dth, recs};
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+let activeFilter = 'all';
+let selectedGH   = null;
+
+function setF(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.fb').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMap();
+}
+
+function passesFilter(info) {
+  if(activeFilter==='all')         return true;
+  if(activeFilter==='allow')       return info.harvestOk;
+  if(activeFilter==='deny')        return !info.harvestOk;
+  if(activeFilter==='spray-block') return !info.sprayOk;
+  if(activeFilter==='spray-ok')    return info.sprayOk;
+  return true;
+}
+
+const SECTOR_LABELS = {1:'Sector 1',2:'Sector 2',3:'Sector 3',4:'Sector 4',5:'Sector 5'};
+const SECTOR_CLS    = {1:'s1-tag',2:'s2-tag',3:'s3-tag',4:'s4-tag',5:'s5-tag'};
+
+function renderMap() {
+  const wrap = document.getElementById('mapWrap');
+  wrap.innerHTML='';
+
+  let totAllow=0, totDeny=0, totSprayOk=0, totSprayNo=0;
+
+  [1,2,3,4,5].forEach(s => {
+    const ghs = SECTOR_GHS[s];
+    const block = document.createElement('div');
+    block.className='sector-block';
+
+    const hdr = document.createElement('div');
+    hdr.className='sector-header';
+    hdr.innerHTML=`<span class="sector-tag ${SECTOR_CLS[s]}">${SECTOR_LABELS[s]}</span><div class="sector-line"></div><span class="sector-count">${ghs.length} GH</span>`;
+    block.appendChild(hdr);
+
+    const row = document.createElement('div');
+    row.className='gh-row';
+
+    ghs.forEach(gh => {
+      const info = ghStatus(gh);
+      if(info.harvestOk) totAllow++; else totDeny++;
+      if(info.sprayOk)   totSprayOk++; else totSprayNo++;
+
+      const show = passesFilter(info);
+      row.appendChild(buildCard(gh, s, info, !show));
+    });
+
+    block.appendChild(row);
+    wrap.appendChild(block);
+  });
+
+  document.getElementById('kAllow').textContent   = totAllow;
+  document.getElementById('kDeny').textContent    = totDeny;
+  document.getElementById('kSprayOk').textContent = totSprayOk;
+  document.getElementById('kSprayNo').textContent = totSprayNo;
+}
+
+function buildCard(gh, sector, info, dim) {
+  const c = document.createElement('div');
+  c.className = `gh-card s-${info.code}`;
+  if(dim) c.style.opacity='.15';
+  if(selectedGH===gh) c.classList.add('selected');
+
+  // stripe
+  const st = document.createElement('div'); st.className='gh-stripe'; c.appendChild(st);
+
+  // GH id
+  const id = document.createElement('div'); id.className='gh-id'; id.textContent=`GH-${gh}`; c.appendChild(id);
+
+  // pest dots
+  const pd = document.createElement('div'); pd.className='gh-pests';
+  const uniq = [...new Set(info.recs.map(r=>r.pesticide))];
+  uniq.slice(0,5).forEach(p=>{
+    const d=document.createElement('div');
+    d.className='pest-dot';
+    d.style.background = PEST_COLOR[p]||'#aaa';
+    d.title=p;
+    pd.appendChild(d);
+  });
+  c.appendChild(pd);
+
+  // valve bars
+  const vr = document.createElement('div'); vr.className='gh-valves';
+  ['A','B'].forEach(v=>{
+    const vb=document.createElement('div');
+    const hasRec = info.recs.length>0;
+    const isRecent = info.recs.some(r=>daysBetween(r.date)<3);
+    vb.className='vbar'+(isRecent?' recent':hasRec?' sprayed':'');
+    vr.appendChild(vb);
+  });
+  c.appendChild(vr);
+
+  // footer
+  const ft = document.createElement('div'); ft.className='gh-foot';
+  const ico = document.createElement('div'); ico.className='gh-foot-ico';
+  ico.textContent = info.harvestOk ? '✅' : info.code==='warn' ? '⚠️' : '🚫';
+  ft.appendChild(ico);
+  if(!info.sprayOk) {
+    const sb=document.createElement('div'); sb.className='spray-block-tag'; sb.textContent='NO SPRAY'; ft.appendChild(sb);
+  } else if(!info.harvestOk && info.daysToH>0) {
+    const pt=document.createElement('div'); pt.className='phi-tag'; pt.textContent=`+${info.daysToH}d`; ft.appendChild(pt);
+  }
+  c.appendChild(ft);
+
+  c.addEventListener('click',()=>{ selectedGH=gh; renderMap(); showDetail(gh,info); });
+  return c;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DETAIL PANEL
+// ═══════════════════════════════════════════════════════════
+function showDetail(gh, info) {
+  const panel = document.getElementById('detailPane');
+  const pillCls = {allow:'pill-allow',deny:'pill-deny',warn:'pill-warn',clean:'pill-clean'}[info.code];
+  const pillTxt = {allow:'Harvest Allowed',deny:'Harvest NOT Allowed',warn:'PHI ends soon',clean:'No spray records'}[info.code];
+  const sectorN = GH_SECTOR[gh] || '?';
+
+  let h = `<div class="det-header">
+    <div>
+      <div class="det-gh-id">GH-${gh}</div>
+      <div style="font-size:.65rem;color:var(--text-muted);margin-top:2px">Sector ${sectorN} · Valve A&amp;B · 160 lines</div>
+    </div>
+    <div class="det-pill ${pillCls}">${pillTxt}</div>
+  </div>`;
+
+  // spray block alert
+  if(!info.sprayOk) {
+    const blk = info.recs.find(r=>daysBetween(r.date)<3);
+    const dLeft = 3 - daysBetween(blk.date);
+    h+=`<div class="spray-alert">⛔ <span>Spraying blocked — last application ${daysBetween(blk.date)===0?'today':daysBetween(blk.date)+' days ago'}. <strong>${dLeft} day${dLeft!==1?'s':''}</strong> remaining before re-entry allowed.</span></div>`;
+  }
+
+  // PHI summary
+  if(!info.harvestOk) {
+    h+=`<div style="background:var(--deny-bg);border:1px solid var(--deny-mid);border-radius:5px;padding:8px 10px;font-size:.7rem;color:var(--deny);margin-bottom:10px">🚫 Harvest not allowed until <strong>${fmtDate(new Date(TODAY.getTime()+info.daysToH*86400000).toISOString().slice(0,10))}</strong> — ${info.daysToH} day${info.daysToH!==1?'s':''} remaining</div>`;
+  }
+
+  // valve visualisation
+  h+=`<div class="det-section">Valve Status</div><div class="valve-pair">`;
+  ['A','B'].forEach(v=>{
+    const hasRec = info.recs.length>0;
+    const isRecent = info.recs.some(r=>daysBetween(r.date)<3);
+    h+=`<div class="valve-card"><div class="valve-name">Valve ${v} — 80 lines</div><div class="lines-grid">`;
+    for(let l=0;l<80;l++){
+      h+=`<div class="ln ${isRecent?'recent':hasRec?'sprayed':''}"></div>`;
+    }
+    h+=`</div></div>`;
+  });
+  h+=`</div>`;
+
+  // spray log
+  if(info.recs.length) {
+    // deduplicate by pesticide+date
+    const seen = new Set();
+    const dedup = info.recs.filter(r=>{ const k=r.date+'|'+r.pesticide; if(seen.has(k)) return false; seen.add(k); return true; });
+
+    h+=`<div class="det-section">Spray Log (${dedup.length} application${dedup.length!==1?'s':''})</div><div class="log-list">`;
+    dedup.forEach(r => {
+      const da = daysBetween(r.date);
+      const hAllowed = harvestAllowed(r.harvest_date);
+      const dth = daysToHarvest(r.harvest_date);
+      const phiPct = Math.max(0,Math.min(100, da/r.phi*100));
+      const pestKey = r.pesticide.split(' ')[0].toLowerCase();
+      const colorCls = da<3 ? 'lc-recent' :
+        r.pesticide.includes('Trolls')   ? 'lc-trolls' :
+        r.pesticide.includes('Mosiplan') ? 'lc-mosiplan' :
+        r.pesticide.includes('Radiant')  ? 'lc-radiant' :
+        r.pesticide.includes('Delta')    ? 'lc-delta' : '';
+
+      h+=`<div class="log-item ${colorCls}">
+        <div class="log-top">
+          <div class="log-name">${r.pesticide}</div>
+          <div class="log-date">${fmtDate(r.date)}</div>
+        </div>
+        <div class="log-tags">
+          <span class="ltag">${r.active}</span>
+          <span class="ltag">PHI: ${r.phi}d</span>
+          <span class="ltag">${r.method}</span>
+          ${da<3?`<span class="ltag spray">⛔ Sprayed ${da===0?'today':da+'d ago'}</span>`:''}
+          ${!hAllowed?`<span class="ltag deny">🚫 +${dth}d to harvest</span>`:`<span class="ltag allow">✅ Harvest OK</span>`}
+        </div>
+        <div class="phi-row">
+          <span class="phi-txt" style="color:${!hAllowed?'var(--deny)':'var(--allow)'}">${!hAllowed?`${dth}d`:'✓'}</span>
+          <div class="phi-bar-wrap"><div class="phi-bar-fill ${!hAllowed?(dth<=3?'w':'d'):'g'}" style="width:${phiPct}%"></div></div>
+          <span class="phi-txt" style="color:var(--text-muted)">${da}d ago</span>
+        </div>
+      </div>`;
+    });
+    h+=`</div>`;
+  } else {
+    h+=`<div style="color:var(--text-muted);font-size:.75rem;text-align:center;margin-top:16px">No spray records for this greenhouse</div>`;
+  }
+
+  panel.innerHTML = h;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CSV IMPORT
+// ═══════════════════════════════════════════════════════════
+function importCSV(e) {
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try {
+      const lines=ev.target.result.split('\n').filter(l=>l.trim());
+      const hdrs=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+      const recs=[];
+      for(let i=1;i<lines.length;i++){
+        const cols=lines[i].split(',');
+        const row={};
+        hdrs.forEach((h,idx)=>row[h]=(cols[idx]||'').trim().replace(/"/g,''));
+        if(!row['gh']||!row['date']) continue;
+        recs.push({
+          date:row['date'], gh:parseInt(row['gh']),
+          sector:parseInt(row['sector'])||GH_SECTOR[parseInt(row['gh'])]||1,
+          valve:row['valve']||row['vulve']||'A&B',
+          first_line:parseInt(row['first line'])||1,
+          end_line:parseInt(row['end line'])||160,
+          pesticide:row['pesticide name']||row['pesticide']||'Unknown',
+          active:row['active ingredient']||row['active ingrediant']||'',
+          method:row['method']||'Spray',
+          phi:parseInt(row['phi'])||0,
+          harvest_date:row['allawed harvest date']||row['harvest date']||'',
+          status:row['status']||'Allow'
+        });
+      }
+      if(recs.length){ RECORDS=recs; selectedGH=null; renderMap(); alert(`✅ Imported ${recs.length} records`); }
+      else alert('⚠️ No valid data found. Check columns: date, gh, sector, pesticide name, phi, allawed harvest date');
+    } catch(err){ alert('Error: '+err.message); }
+    e.target.value='';
+  };
+  r.readAsText(f,'UTF-8');
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.hd-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='log') renderLog();
+  if(name==='cal') renderCalendar();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SPRAY LOG
+// ═══════════════════════════════════════════════════════════
+function renderLog() {
+  const q      = (document.getElementById('logSearch').value||'').toLowerCase();
+  const secF   = document.getElementById('logSector').value;
+  const statF  = document.getElementById('logStatus').value;
+
+  // deduplicate by date+gh+pesticide, sort by date desc
+  const seen = new Set();
+  const rows = RECORDS
+    .filter(r => {
+      const k = r.date+'|'+r.gh+'|'+r.pesticide;
+      if(seen.has(k)) return false; seen.add(k); return true;
+    })
+    .sort((a,b)=> new Date(b.date)-new Date(a.date))
+    .filter(r => {
+      if(secF  && String(r.sector)!==secF)  return false;
+      const hok = harvestAllowed(r.harvest_date);
+      if(statF==='allow' && !hok) return false;
+      if(statF==='deny'  &&  hok) return false;
+      if(q && !( r.pesticide.toLowerCase().includes(q) ||
+                 r.active.toLowerCase().includes(q) ||
+                 String(r.gh).includes(q) )) return false;
+      return true;
+    });
+
+  document.getElementById('logCount').textContent = `${rows.length} records`;
+
+  const SEC_COLORS = {1:'#2563eb',2:'#0891b2',3:'#059669',4:'#d97706',5:'#7c3aed'};
+  const tbody = document.getElementById('logTbody');
+  tbody.innerHTML = rows.map(r => {
+    const hok = harvestAllowed(r.harvest_date);
+    const dth = daysToHarvest(r.harvest_date);
+    const da  = daysBetween(r.date);
+    const pc  = PEST_COLOR[r.pesticide]||'#aaa';
+    const rowCls = !hok ? 'row-deny' : da<3 ? '' : 'row-allow';
+    return `<tr class="${rowCls}">
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:.68rem">${fmtDate(r.date)}</span></td>
+      <td><strong>GH-${r.gh}</strong></td>
+      <td><span style="font-size:.65rem;font-weight:700;color:${SEC_COLORS[r.sector]||'#666'}">S${r.sector}</span></td>
+      <td><span class="tpest-dot" style="background:${pc}"></span> ${r.pesticide}</td>
+      <td style="color:var(--text-mid);font-size:.68rem">${r.active}</td>
+      <td style="font-size:.68rem">${r.method}</td>
+      <td style="font-family:'JetBrains Mono',monospace;text-align:center"><strong>${r.phi}</strong></td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:.65rem">${fmtDate(r.harvest_date)}</span></td>
+      <td>${hok
+        ? `<span class="tpill tpill-allow">✅ Allowed</span>`
+        : dth<=3
+        ? `<span class="tpill tpill-warn">⚠️ ${dth}d left</span>`
+        : `<span class="tpill tpill-deny">🚫 ${dth}d left</span>`
+      }</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// PHI CALENDAR
+// ═══════════════════════════════════════════════════════════
+let calYear  = TODAY.getFullYear();
+let calMonth = TODAY.getMonth(); // 0-indexed
+
+function calMove(dir) { calMonth+=dir; if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+
+function renderCalendar() {
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLbl').textContent = `${monthNames[calMonth]} ${calYear}`;
+
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const days = Array.from({length:daysInMonth},(_,i)=>i+1);
+
+  // All GHs that have records
+  const ghList = [...new Set(RECORDS.map(r=>r.gh))].sort((a,b)=>a-b);
+
+  const SEC_COLORS = {1:'#2563eb',2:'#0891b2',3:'#059669',4:'#d97706',5:'#7c3aed'};
+
+  const grid = document.getElementById('calGrid');
+  // grid-template-columns: label col + one per day
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = `70px repeat(${daysInMonth}, minmax(22px,1fr))`;
+
+  let html = '';
+
+  // Header row — GH label placeholder + day numbers
+  html += `<div style="background:var(--surface2);border-bottom:1px solid var(--border);border-right:2px solid var(--border2);padding:6px 4px;font-size:.6rem;font-weight:700;color:var(--text-muted);position:sticky;left:0;z-index:6">GH</div>`;
+  days.forEach(d => {
+    const isToday = (d===TODAY.getDate() && calMonth===TODAY.getMonth() && calYear===TODAY.getFullYear());
+    html += `<div class="cal-day-hdr${isToday?' today-col':''}">${d}</div>`;
+  });
+
+  // One row per GH
+  ghList.forEach(gh => {
+    const sec = GH_SECTOR[gh]||1;
+    const color = SEC_COLORS[sec]||'#aaa';
+    html += `<div class="cal-gh-lbl"><span class="sec-dot" style="background:${color}"></span>GH-${gh}</div>`;
+
+    days.forEach(d => {
+      const cellDate = new Date(calYear, calMonth, d); cellDate.setHours(0,0,0,0);
+      const isToday2 = cellDate.getTime()===TODAY.getTime();
+
+      // Check spray on this day
+      const sprayRec = RECORDS.find(r => r.gh===gh && new Date(r.date).getTime()===cellDate.getTime());
+
+      // Check PHI status on this day
+      const activeRecs = RECORDS.filter(r => {
+        if(r.gh!==gh) return false;
+        const sd = new Date(r.date); sd.setHours(0,0,0,0);
+        const hd = new Date(r.harvest_date); hd.setHours(0,0,0,0);
+        return cellDate >= sd && cellDate < hd;
+      });
+      const latestHD = activeRecs.reduce((mx,r)=>{ const hd=new Date(r.harvest_date); return hd>mx?hd:mx; }, new Date(0));
+      const daysLeft = activeRecs.length ? Math.ceil((latestHD-cellDate)/86400000) : 0;
+
+      let cellCls = isToday2 ? 'today-col ' : '';
+      let dotHtml = '';
+
+      if(sprayRec) {
+        cellCls += 'c-spray';
+        const pc = PEST_COLOR[sprayRec.pesticide]||'#3b82f6';
+        dotHtml = `<div class="cal-cell-dot" style="background:${pc}" title="${sprayRec.pesticide}"></div>`;
+      } else if(activeRecs.length) {
+        cellCls += daysLeft<=3 ? 'c-warn' : 'c-deny';
+      } else {
+        // check if harvest is allowed (past all PHI)
+        const pastRecs = RECORDS.filter(r=>r.gh===gh && new Date(r.harvest_date)<=cellDate);
+        if(pastRecs.length) cellCls += 'c-allow';
+      }
+
+      html += `<div class="cal-cell ${cellCls}" title="GH-${gh} · ${d}/${calMonth+1}">${dotHtml}</div>`;
+    });
+  });
+
+  grid.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DATA SOURCE — GitHub Pages JSON + manual fallback
+// ═══════════════════════════════════════════════════════════
+const DATA_URL = 'https://ayavita2025-ctrl.github.io/ipm-dabaa/data.json';
+
+function showBar(msg, type) {
+  const bar = document.getElementById('syncBar');
+  const colors = { loading:'#1e40af', ok:'#1a6b3a', error:'#b91c1c' };
+  bar.style.background = colors[type] || '#555';
+  bar.querySelector('#syncMsg').textContent = msg;
+  bar.style.display = 'flex';
+  if(type === 'ok') setTimeout(() => { bar.style.display = 'none'; }, 5000);
+}
+
+// ── Auto-fetch from GitHub on every page open ──
+async function fetchFromGitHub() {
+  showBar('⟳  Loading latest data…', 'loading');
+  try {
+    const resp = await fetch(DATA_URL + '?t=' + Date.now());
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const json = await resp.json();
+    if(!json.records || !json.records.length) throw new Error('Empty data');
+
+    applyData(json.records);
+    const updated = json.updated || '';
+    const now = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('syncTime').textContent = updated ? 'Updated: ' + updated : 'Synced: ' + now;
+    showBar('✓  Data loaded — ' + json.records.length + ' records' + (updated ? ' · ' + updated : ''), 'ok');
+  } catch(err) {
+    console.warn('GitHub fetch failed:', err.message);
+    showBar('⚠  Could not reach server — showing cached data', 'error');
+  }
+}
+
+// ── Apply records to dashboard ──
+function applyData(newRecs) {
+  RECORDS = newRecs;
+  Object.keys(SECTOR_GHS).forEach(k => SECTOR_GHS[k] = []);
+  newRecs.forEach(r => {
+    if(!r.sector || !r.gh) return;
+    GH_SECTOR[r.gh] = r.sector;
+    if(!SECTOR_GHS[r.sector]) SECTOR_GHS[r.sector] = [];
+    if(!SECTOR_GHS[r.sector].includes(r.gh)) SECTOR_GHS[r.sector].push(r.gh);
+  });
+  Object.keys(SECTOR_GHS).forEach(k => SECTOR_GHS[k].sort((a,b) => a-b));
+  selectedGH = null;
+  renderMap();
+  if(document.getElementById('view-log').classList.contains('active')) renderLog();
+  if(document.getElementById('view-cal').classList.contains('active')) renderCalendar();
+}
+
+// ── Manual Excel upload (admin only) ──
+function loadExcelFile(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const ico = document.getElementById('loadIco');
+  const txt = document.getElementById('loadTxt');
+  ico.textContent = '⏳'; txt.textContent = 'Loading…';
+  showBar('⟳  Reading ' + file.name + '…', 'loading');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      const sheetName = wb.SheetNames.find(s => s.toUpperCase().includes('IPM')) || wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { raw: false, dateNF: 'yyyy-mm-dd' });
+
+      function parseDate(val) {
+        if(!val) return '';
+        val = String(val).trim();
+        if(/^\d{4}-\d{2}-\d{2}/.test(val)) return val.slice(0,10);
+        if(val.includes('/')) {
+          const parts = val.split('/');
+          if(parts.length === 3) {
+            const [d,m,y] = parts;
+            return y.padStart(4,'20') + '-' + m.padStart(2,'0') + '-' + d.padStart(2,'0');
+          }
+        }
+        const d = new Date(val);
+        return isNaN(d) ? val : d.toISOString().slice(0,10);
+      }
+
+      const newRecs = rows
+        .filter(r => r['Date'] && (r['Gh.'] || r['GH']) && r['Sector'])
+        .map(r => ({
+          date:         parseDate(r['Date']),
+          gh:           parseInt(r['Gh.'] || r['GH']) || 0,
+          sector:       parseInt(r['Sector']) || 0,
+          valve:        r['Vulve'] || r['Valve'] || 'A&B',
+          first_line:   parseInt(r['First Line']) || 1,
+          end_line:     parseInt(r['End line']) || 160,
+          pesticide:    r['Pesticide Name'] || '',
+          active:       r['Active ingrediant '] || r['Active Ingredient'] || r['Active ingrediant'] || '',
+          method:       r['Method'] || 'Spray',
+          phi:          parseInt(r['PHI']) || 0,
+          harvest_date: parseDate(r['Allawed Harvest date'] || r['Allowed Harvest date'] || ''),
+          status:       r['Status'] || '',
+        }))
+        .filter(r => r.gh > 0 && r.date);
+
+      if(!newRecs.length) throw new Error('No valid rows found');
+
+      applyData(newRecs);
+      const now = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      document.getElementById('syncTime').textContent = 'Last upload: ' + now;
+      ico.textContent = '✅'; txt.textContent = 'Load from Dropbox folder';
+      document.getElementById('importNote').textContent = '✓ ' + newRecs.length + ' records · ' + now;
+      showBar('✓  Loaded ' + newRecs.length + ' records from ' + file.name, 'ok');
+    } catch(err) {
+      ico.textContent = '📁'; txt.textContent = 'Load from Dropbox folder';
+      showBar('✗  Error: ' + err.message, 'error');
+    }
+    event.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── INIT ──
+(function() {
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  document.head.appendChild(script);
+  renderMap();       // show embedded data immediately
+  fetchFromGitHub(); // then pull latest from GitHub
+})();
+
+// Auto-refresh every 10 minutes
+setInterval(fetchFromGitHub, 10 * 60 * 1000);
+</script>
+</body>
+</html>

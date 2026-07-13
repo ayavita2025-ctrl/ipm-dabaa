@@ -5,13 +5,15 @@ on:
     paths:
       - '*.xlsx'
       - '*.xlsm'
-  workflow_dispatch:  # allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   convert:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -29,5 +31,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
-          git diff --staged --quiet || git commit -m "Auto-update data.json from Excel [skip ci]"
-          git push
+          git diff --staged --quiet || git commit -m "Auto-update data.json [skip ci]"
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/ayavita2025-ctrl/ipm-dabaa.git
